@@ -1,0 +1,49 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                        http://www.springframework.org/schema/tx
+                        http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+                        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+
+    <!-- 配置读取properties的工具类 -->
+    <context:property-placeholder location="classpath:redis.properties"/>
+
+    <!-- 配置jedis连接池 -->
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <!-- 最大连接数 -->
+        <property name="maxTotal" value="${redis.pool.maxTotal}"/>
+        <!-- 最大空闲数 -->
+        <property name="maxIdle" value="${redis.pool.maxIdle}"/>
+        <!-- 最小空闲数 -->
+        <property name="minIdle" value="${redis.pool.minIdle}"/>
+    </bean>
+    <!-- 配置jedis连接工厂 -->
+    <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <!-- 主机地址 -->
+        <property name="hostName" value="${redis.conn.hostName}"/>
+        <!-- 端口号 -->
+        <property name="port" value="${redis.conn.port}"/>
+        <!-- jedis连接池 -->
+        <property name="poolConfig" ref="jedisPoolConfig"/>
+    </bean>
+    <!-- 配置redis的模板对象 -->
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+        <!-- 连接工程 信息 -->
+        <property name="connectionFactory" ref="jedisConnectionFactory"/>
+        <!-- 配置序列化器：用于对redis的key和value做序列化和反序列化 -->
+        <!-- 配置默认的序列化器 -->
+        <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+        <property name="valueSerializer">
+            <!--<bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>-->
+            <bean class="org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer"/>
+        </property>
+    </bean>
+</beans>
